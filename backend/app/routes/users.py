@@ -105,9 +105,18 @@ async def user_login(response: Response, form_data: OAuth2PasswordRequestForm = 
     return {"message": "Login successful","user_id": user["user_id"]}
 
 @router.post("/logout")
-async def user_logout(response: Response):
+async def user_logout(request: Request, response: Response):
+    """
+    Logs out the user by deleting the access_token cookie.
+    If no user is logged in, return a friendly message.
+    """
+    token = request.cookies.get("access_token")
+    
+    if not token:
+        return {"message": "No active session"}
+    
     response.delete_cookie(key="access_token")
-    return {"message": "Logout successful"} 
+    return {"message": "Logout successful"}
 
 
 def get_current_user(request: Request):
