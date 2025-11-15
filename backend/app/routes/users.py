@@ -149,3 +149,40 @@ async def get_me(user_id: str = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="User not found")
 
     return result.data[0]
+
+
+## DELECT ACCOUNT
+@router.delete("/delete-account")
+async def delete_account(user = Depends(get_current_user)):
+    """
+    Allows a logged-in user to delete their entire account and related data.
+    """
+
+    user_id = user
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    # ---------------------
+    # Step 1: Delete user's search history
+    # ---------------------
+    await asyncio.to_thread(
+        lambda: supabase.table("search_query")
+        .delete()
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    # ---------------------
+    # Step 2: Delete user record
+    # ---------------------
+    result = await asyncio.to_thread(
+        lambda: supabase.table("users")
+        .delete()
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to delete account")
+
+    return {"message": "Your account and all related data have been deleted."}

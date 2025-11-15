@@ -157,3 +157,43 @@ async def get_user_queries(user_id: int = Depends(get_current_user)):
         .execute()
     )
     return result.data or []
+
+@router.delete("/delete/{query_id}")
+async def delete_user_query(
+    query_id: int,
+    user = Depends(get_current_user)
+):
+    """
+    Delete a search query ONLY if it belongs to the current authenticated user.
+    """
+
+    user_id = user
+
+    # 1. Check that the query exists and belongs to the user
+    query = await asyncio.to_thread(
+        lambda: supabase.table("search_query")
+        .select("query_id, user_id")
+        .eq("query_id", query_id)
+        .execute()
+    )
+
+    if not query.data:
+        raise HTTPException(status_code=404, detail="Query not found")
+
+    query_owner = query.data[0]["user_id"]
+
+    if query_owner != user_id:
+        raise HTTPException(status_code=403, detail="You are not allowed to delete this query")
+
+    # 2. Delete the query
+    delete_result = await asyncio.to_thread(
+        lambda: supabase.table("search_query")
+        .delete()
+        .eq("query_id", query_id)
+        .execute()
+    )
+
+    if not delete_result.data:
+        raise HTTPException(status_code=500, detail="Failed to delete query")
+
+    return {"message": "Query deleted successfully", "query_id": query_id}
