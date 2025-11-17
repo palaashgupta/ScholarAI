@@ -7,6 +7,7 @@ import piniaPersist from 'pinia-plugin-persistedstate';
 // --- Import Bootstrap CSS & JS ---
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import './assets/theme.css';
 
 const pinia = createPinia();
 pinia.use(piniaPersist);

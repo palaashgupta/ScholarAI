@@ -137,6 +137,19 @@ def get_current_user(request: Request):
     
     return user_id
 
+def get_user_id_or_guest(request: Request) -> int:
+    """Return the user ID if logged in, otherwise 0 for guest."""
+    token = request.cookies.get("access_token")
+    if not token:
+        return 0  # guest user
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("user_id")
+        return user_id if user_id else 0
+    except Exception:
+        return 0
+
+
 
 @router.get("/me")
 async def get_me(user_id: str = Depends(get_current_user)):

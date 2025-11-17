@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, Field
 from app.supabase_client import supabase
-from app.routes.users import get_current_user
+from app.routes.users import get_current_user, get_user_id_or_guest
 from app.routes.paper_information import store_paper, get_papers_by_urls
 import httpx
 from datetime import datetime
@@ -57,18 +57,9 @@ async def fetch_papers(query: str, limit: int = 10) -> List[dict]:
 # ---------------------
 # POST /search - Create new query
 # ---------------------
-@router.post("/")
+@router.post("/search")
 async def search_papers(request_data: SearchRequest, request: Request):
-    """
-    Perform a search, store query, store paper info, return query with full papers
-    """
-    # Get user ID or assign guest
-    try:
-        user_id = get_current_user(request)
-        if user_id is None:
-            user_id = 0
-    except Exception:
-        user_id = 0
+    user_id = get_user_id_or_guest(request)  # will be 0 if not logged in
 
     # Fetch papers
     try:
@@ -101,7 +92,7 @@ async def search_papers(request_data: SearchRequest, request: Request):
         if paper_data:
             stored_papers.append(paper_data)
 
-    # Return full info for query
+    # Return full info
     return {
         "query_id": query_id,
         "user_id": user_id,

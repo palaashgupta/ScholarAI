@@ -6,6 +6,7 @@ import SearchResult from '../pages/SearchResult.vue';
 import AboutUs from '../pages/AboutUs.vue';
 import Dashboard from '../pages/Dashboard.vue';
 import Admin from '../pages/Admin.vue';
+import Register from '../pages/Register.vue';
 import { useAuthStore } from '../stores/auth';
 
 
@@ -16,6 +17,7 @@ const routes = [
     { path: "/search-result", component: SearchResult},
     { path: "/about-us", component: AboutUs},
     { path: "/admin", component: Admin, meta: { requiresAuth: true } },
+    { path: "/register", component: Register },
     {
         path: "/dashboard",
         component: Dashboard,
