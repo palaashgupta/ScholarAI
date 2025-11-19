@@ -1,10 +1,12 @@
 <template>
   <Navbar />
   <router-view />
+  <AppFooter />
 </template>
 
 <script setup>
 import Navbar from './components/Navbar.vue';
+import AppFooter from './components/AppFooter.vue';
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 

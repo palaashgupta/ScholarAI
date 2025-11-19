@@ -199,3 +199,56 @@ async def delete_account(user = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Failed to delete account")
 
     return {"message": "Your account and all related data have been deleted."}
+
+@router.get("/me/queries")
+async def get_user_queries(user_id: str = Depends(get_current_user)):
+    """
+    Returns all search queries performed by the currently logged-in user.
+    """
+    result = await asyncio.to_thread(
+        lambda: supabase.table("search_query")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    if not result.data:
+        return []
+
+    queries = [
+        {
+            "query_id": q.get("query_id"),
+            "query_text": q.get("query"),  # Map DB 'query' field to 'query_text'
+            "created_at": q.get("created_at"),
+        }
+        for q in result.data
+    ]
+
+    return queries
+from fastapi import Body
+
+@router.delete("/queries")
+async def delete_user_queries(
+    payload: dict = Body(...), 
+    user_id: str = Depends(get_current_user)
+):
+    """
+    Delete all queries for the currently logged-in user with the given query_text.
+    """
+    query_text = payload.get("query_text")
+    if not query_text:
+        raise HTTPException(status_code=400, detail="query_text is required")
+
+    result = await asyncio.to_thread(
+        lambda: supabase.table("search_query")
+        .delete()
+        .eq("user_id", user_id)
+        .eq("query", query_text)
+        .execute()
+    )
+
+    if not result.data:
+        return {"message": f'No queries found for "{query_text}" to delete.'}
+
+    return {"message": f'All queries for "{query_text}" deleted successfully.'}

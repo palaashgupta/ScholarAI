@@ -4,9 +4,14 @@
     <h1 class="query-title">
       Results for: <span>"{{ query }}"</span>
     </h1>
+
+    <!-- Query ID -->
     <p class="query-id" v-if="query_id">
       <strong>Query ID:</strong> {{ query_id }}
     </p>
+    <button class="btn btn-secondary btn-sm" @click="goBack">
+        Go Back
+    </button>
 
     <!-- Loading -->
     <div v-if="loading" class="loading">Loading results...</div>
@@ -16,9 +21,10 @@
       No results found.
     </div>
 
-    <!-- Card Grid -->
+    <!-- Results Grid -->
     <div class="results-grid">
       <div class="result-card" v-for="paper in results" :key="paper.paper_id">
+        <!-- Truncated Title -->
         <h2 class="paper-title">
           {{
             paper.title
@@ -29,6 +35,7 @@
           }}
         </h2>
 
+        <!-- Authors (max 2) -->
         <p class="paper-authors">
           <strong>Authors:</strong>
           {{
@@ -40,36 +47,89 @@
           }}
         </p>
 
-
+        <!-- Year -->
         <p class="paper-year">
-          <strong>Year:</strong> {{ paper.created_at ? paper.created_at.substring(0, 4) : "N/A" }}
+          <strong>Year:</strong>
+          {{ paper.created_at ? paper.created_at.substring(0, 4) : "N/A" }}
         </p>
 
-        <a
-          class="paper-link"
-          :href="paper.paper_url"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          🔗 View Paper
-        </a>
+        <!-- Buttons -->
+        <div class="card-buttons">
+          <button class="btn btn-primary btn-sm" @click="openModal(paper)">
+            Details
+          </button>
+
+          <a
+            class="btn btn-outline-secondary btn-sm"
+            :href="paper.paper_url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open Paper
+          </a>
+        </div>
       </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="paperModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <h5 class="modal-title">{{ selectedPaper?.title }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <p><strong>Authors:</strong> {{ selectedPaper?.authors?.join(", ") }}</p>
+            <p><strong>Year:</strong> {{ selectedPaper?.created_at?.substring(0,4) }}</p>
+            <p><strong>Published In:</strong> {{ selectedPaper?.published_in || "Unknown" }}</p>
+
+            <hr>
+
+            <p><strong>Summary:</strong></p>
+            <p>{{ selectedPaper?.summary || "No summary available." }}</p>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+            <a
+              class="btn btn-primary"
+              :href="selectedPaper?.paper_url"
+              target="_blank"
+            >
+              Open Paper
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import axios from 'axios';
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import axios from "axios";
+import { Modal } from "bootstrap";
+
 
 const route = useRoute();
+const router = useRouter();
 const query = ref(route.query.q || "");
 const query_id = ref(route.query.id || null);
 
 const results = ref([]);
 const loading = ref(true);
 
+const selectedPaper = ref(null);
+let modalInstance = null;
+
+// Fetch search results
 onMounted(async () => {
   if (!query_id.value) {
     loading.value = false;
@@ -77,9 +137,10 @@ onMounted(async () => {
   }
 
   try {
-    const res = await axios.get(`http://localhost:8000/search/query/${query_id.value}`, {
-      withCredentials: true,
-    });
+    const res = await axios.get(
+      `http://localhost:8000/search/query/${query_id.value}`,
+      { withCredentials: true }
+    );
 
     query.value = res.data.query || query.value;
     results.value = res.data.papers || [];
@@ -89,6 +150,22 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+function goBack() {
+  router.back(); // goes to the last visited page
+}
+
+// Open modal
+function openModal(paper) {
+  selectedPaper.value = paper;
+
+  if (!modalInstance) {
+    const modalEl = document.getElementById("paperModal");
+    modalInstance = new Modal(modalEl);
+  }
+
+  modalInstance.show();
+}
 </script>
 
 <style scoped>
@@ -100,12 +177,18 @@ onMounted(async () => {
 
 .query-title {
   font-size: 28px;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .query-title span {
   color: #3498db;
   font-weight: bold;
+}
+
+.query-id {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #666;
 }
 
 .loading,
@@ -131,7 +214,6 @@ onMounted(async () => {
   transition: transform 0.15s ease-in-out;
 }
 
-
 .result-card:hover {
   transform: scale(1.03);
 }
@@ -148,24 +230,19 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-.paper-link {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 8px 14px;
-  background: #3498db;
-  color: white;
-  text-decoration: none;
+.card-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.btn {
   border-radius: 6px;
-  transition: 0.2s;
 }
 
-.paper-link:hover {
-  background: #217dbb;
+.modal-content {
+  background: var(--card-bg);
+  color: var(--card-text);
 }
 
-.query-id {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 15px;
-}
 </style>

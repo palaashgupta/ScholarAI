@@ -21,6 +21,8 @@
 
   
   --card-border: #555;
+  --card-bg: #2b2d2f;
+  --card-text: #fff;
 }
 
 /* Apply theme to body */
@@ -39,3 +41,24 @@ body {
 .navbar .dropdown-item {
   color: var(--navbar-text) !important;
 }
+
+/* Restore Bootstrap collapse behavior */
+.navbar-collapse.collapse {
+  display: none;
+}
+
+.navbar-collapse.collapse.show {
+  display: block;
+}
+
+/* Fix toggler icon visibility in dark mode */
+[data-theme="dark"] .navbar-light .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* Ensure toggler is clickable (glassmorphism/z-index issues) */
+.navbar-toggler {
+  z-index: 2000;
+  position: relative;
+}
+
