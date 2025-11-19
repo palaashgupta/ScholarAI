@@ -56,49 +56,23 @@
 </template>
 
 <script setup>
-import { ref, computed,watchEffect,onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, watchEffect } from 'vue';
 import { useAuthStore } from '../stores/auth';
-import backgroundImg from '../assets/background_home.png'; // import your PNG
+import { useSearch } from '../composables/useSearch';
+import backgroundImg from '../assets/background_home.png';
 
 const auth = useAuthStore();
-const router = useRouter();
-const query = ref('');
+const { query, search, loading } = useSearch();
 
 const isLoggedIn = computed(() => !!auth.user);
 
-// Auto-react to user changes (no refresh needed)
 watchEffect(() => {
   console.log('Auth changed →', auth.user);
 });
 
-// Fetch user on mount
 onMounted(() => {
   auth.fetchCurrentUser();
 });
-
-
-async function search() {
-  if (!query.value.trim()) return;
-  try {
-    const res = await fetch('http://localhost:8000/search/search/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ query: query.value })
-    });
-
-    if (!res.ok) throw new Error('Search failed');
-
-    await res.json();
-    router.push('/search-result');
-
-  } catch (err) {
-    console.error(err);
-    alert('Search failed');
-  }
-}
-
 </script>
 
 <style scoped>

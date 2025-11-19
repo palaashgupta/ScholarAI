@@ -5,6 +5,10 @@
 
   --navbar-bg: #f8f9fa;
   --navbar-text: #000;
+
+  --card-bg: #ffffff;
+  --card-text: #111;
+  --card-border: #ccc;
 }
 
 /* Dark mode */
@@ -14,6 +18,9 @@
 
   --navbar-bg: #2b2d2f;
   --navbar-text: #fff;
+
+  
+  --card-border: #555;
 }
 
 /* Apply theme to body */

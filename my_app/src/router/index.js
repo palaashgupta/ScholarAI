@@ -14,7 +14,7 @@ const routes = [
     { path: "/", component: Home},
     { path: "/login", component: Login },
     { path: "/logout", component: Logout, meta: { requiresAuth: true } },
-    { path: "/search-result", component: SearchResult},
+    { path: "/search-result", component: SearchResult, props: route => ({ query: route.query.q })},
     { path: "/about-us", component: AboutUs},
     { path: "/admin", component: Admin, meta: { requiresAuth: true } },
     { path: "/register", component: Register },

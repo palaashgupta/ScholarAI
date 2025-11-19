@@ -98,54 +98,30 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watchEffect } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, watchEffect } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
+import { useSearch } from '../composables/useSearch';
+import { useRouter } from 'vue-router';
 
 const auth = useAuthStore();
 const themeStore = useThemeStore();
 const router = useRouter();
 
-const query = ref('');
+const { query, search, loading } = useSearch();
 
 // Computed states
 const isLoggedIn = computed(() => !!auth.user);
 const isAdmin = computed(() => auth.user?.role === 'ADMIN');
 
-// Auto-react to user changes (no refresh needed)
 watchEffect(() => {
   console.log('Auth changed →', auth.user);
 });
 
-// Fetch user on mount
 onMounted(() => {
   auth.fetchCurrentUser();
 });
 
-// SEARCH
-async function search() {
-  if (!query.value.trim()) return;
-  try {
-    const res = await fetch('http://localhost:8000/search/search/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ query: query.value })
-    });
-
-    if (!res.ok) throw new Error('Search failed');
-
-    await res.json();
-    router.push('/search-result');
-
-  } catch (err) {
-    console.error(err);
-    alert('Search failed');
-  }
-}
-
-// Dashboard redirect
 function goDashboard() {
   if (!isLoggedIn.value) {
     alert('You must login first!');
@@ -155,18 +131,15 @@ function goDashboard() {
   router.push('/dashboard');
 }
 
-// Home redirect
 function goHome() {
   router.push('/');
 }
 
-// Logout
 async function logoutUser() {
   await auth.logout();
   router.push('/');
 }
 
-// Theme toggle
 function toggleTheme() {
   themeStore.toggleTheme();
 }
