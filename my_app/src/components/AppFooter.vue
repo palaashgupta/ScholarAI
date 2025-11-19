@@ -18,7 +18,7 @@ const themeStore = useThemeStore();
 
 const name = "Palaash Gupta";
 const email = "palaashgupta2584@gmail.com";
-const github = "https://github.com/palaashgupta";
+const github = "https://www.linkedin.com/in/palaash-gupta";
 
 function applyTheme() {
   const footer = document.querySelector(".app-footer");
